@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trợ lý Gia hạn Đại lý Sao Việt</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div>
+        <h1>Trợ lý Gia hạn Đại lý Sao Việt</h1>
+        <p class="subtitle">Biến insight từ Microsoft Fabric thành hành động gia hạn ưu tiên cho đội kinh doanh</p>
+      </div>
+    </div>
+    <span class="demo-label" id="demoLabel">Dữ liệu hư cấu phục vụ trình diễn</span>
+  </header>
+
+  <main class="container">
+    <!-- KPI -->
+    <section class="kpi-grid" aria-label="Chỉ số chính">
+      <article class="kpi-card kpi-total">
+        <p class="kpi-title">Tổng giá trị gia hạn</p>
+        <p class="kpi-value" id="kpiTotal">0</p>
+        <p class="kpi-note" id="kpiTotalNote"></p>
+      </article>
+      <article class="kpi-card kpi-risk">
+        <p class="kpi-title">Giá trị rủi ro cao</p>
+        <p class="kpi-value" id="kpiHighRisk">0</p>
+        <p class="kpi-note" id="kpiHighRiskNote"></p>
+      </article>
+      <article class="kpi-card kpi-action">
+        <p class="kpi-title">Số hợp đồng cần xử lý</p>
+        <p class="kpi-value" id="kpiAction">0</p>
+        <p class="kpi-note">Chưa hoàn tất gia hạn</p>
+      </article>
+      <article class="kpi-card kpi-upsell">
+        <p class="kpi-title">Số cơ hội bán thêm</p>
+        <p class="kpi-value" id="kpiUpsell">0</p>
+        <p class="kpi-note" id="kpiUpsellNote"></p>
+      </article>
+    </section>
+
+    <!-- Bộ lọc -->
+    <section class="panel filters" aria-label="Bộ lọc">
+      <div class="filter-row">
+        <label class="field field-search">
+          <span>Tìm kiếm</span>
+          <input type="search" id="searchInput" placeholder="Nhập tên khách hàng hoặc mã hợp đồng...">
+        </label>
+        <label class="field">
+          <span>Vùng</span>
+          <select id="filterRegion"><option value="">Tất cả</option></select>
+        </label>
+        <label class="field">
+          <span>Mức độ rủi ro</span>
+          <select id="filterRisk"><option value="">Tất cả</option></select>
+        </label>
+        <label class="field">
+          <span>Trạng thái</span>
+          <select id="filterStatus"><option value="">Tất cả</option></select>
+        </label>
+        <label class="field">
+          <span>Sản phẩm</span>
+          <select id="filterProduct"><option value="">Tất cả</option></select>
+        </label>
+        <label class="field">
+          <span>Nhân viên phụ trách</span>
+          <select id="filterSales"><option value="">Tất cả</option></select>
+        </label>
+        <label class="field">
+          <span>Hết hạn trong</span>
+          <select id="filterExpiry">
+            <option value="">Tất cả</option>
+            <option value="30">30 ngày tới</option>
+            <option value="60">60 ngày tới</option>
+            <option value="90">90 ngày tới</option>
+          </select>
+        </label>
+      </div>
+      <div class="filter-actions">
+        <span class="result-count" id="resultCount"></span>
+        <button type="button" class="btn btn-secondary" id="resetFilters">Xóa bộ lọc</button>
+        <button type="button" class="btn btn-primary" id="downloadCsv">Tải danh sách hành động (CSV)</button>
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <nav class="tabs" role="tablist" aria-label="Chế độ xem">
+      <button type="button" class="tab active" role="tab" id="tab-renewal" aria-controls="panel-renewal" aria-selected="true">Gia hạn hợp đồng</button>
+      <button type="button" class="tab" role="tab" id="tab-upsell" aria-controls="panel-upsell" aria-selected="false">Cơ hội bán thêm</button>
+    </nav>
+
+    <div class="layout">
+      <div class="main-col">
+        <!-- Tab 1 -->
+        <section id="panel-renewal" class="tab-panel" role="tabpanel" aria-labelledby="tab-renewal">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Top 5 hợp đồng ưu tiên cao nhất</h2>
+              <p class="muted">Ưu tiên theo mức độ rủi ro, giá trị gia hạn và ngày hết hạn (không gồm hợp đồng đã gia hạn)</p>
+            </div>
+            <ol class="priority-list" id="priorityList"></ol>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Giá trị gia hạn rủi ro cao theo vùng</h2>
+              <p class="muted">Tổng giá trị các hợp đồng có mức độ rủi ro Cao (theo bộ lọc hiện tại)</p>
+            </div>
+            <div class="chart" id="regionChart" role="img" aria-label="Biểu đồ giá trị rủi ro cao theo vùng"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head panel-head-row">
+              <div>
+                <h2>Danh sách hợp đồng gia hạn</h2>
+                <p class="muted">Sắp xếp: rủi ro (Cao → Thấp), giá trị (lớn → nhỏ), ngày hết hạn (gần → xa)</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table" id="renewalTable">
+                <thead>
+                  <tr>
+                    <th>Mã hợp đồng</th>
+                    <th>Khách hàng</th>
+                    <th>Vùng</th>
+                    <th>Sản phẩm hiện tại</th>
+                    <th>Ngày hết hạn</th>
+                    <th class="num">Số license</th>
+                    <th class="num">Giá trị gia hạn</th>
+                    <th>Trạng thái</th>
+                    <th>Rủi ro</th>
+                    <th>Lý do rủi ro</th>
+                    <th>Nhân viên</th>
+                    <th>Hành động đề xuất</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <p class="empty" id="renewalEmpty" hidden>Không có hợp đồng nào phù hợp với bộ lọc.</p>
+          </div>
+        </section>
+
+        <!-- Tab 2 -->
+        <section id="panel-upsell" class="tab-panel" role="tabpanel" aria-labelledby="tab-upsell" hidden>
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Cơ hội bán thêm</h2>
+              <p class="muted">Các hợp đồng có tiềm năng nâng cấp hoặc mở rộng sản phẩm Microsoft khi gia hạn</p>
+            </div>
+            <div class="upsell-grid" id="upsellGrid"></div>
+            <p class="empty" id="upsellEmpty" hidden>Không có cơ hội bán thêm nào phù hợp với bộ lọc.</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- Tech Data -->
+      <aside class="side-col">
+        <div class="panel techdata">
+          <h2>Tech Data có thể hỗ trợ</h2>
+          <ul>
+            <li><strong>Báo giá &amp; chính sách giá:</strong> hỗ trợ lập báo giá gia hạn CSP/NCE và các chương trình khuyến mãi hiện hành.</li>
+            <li><strong>Chuyên gia giải pháp:</strong> tư vấn nâng cấp Microsoft 365 E5, Copilot, Fabric và Azure.</li>
+            <li><strong>Đánh giá kỹ thuật:</strong> workshop, PoC và đánh giá mức độ sử dụng license cho khách hàng.</li>
+            <li><strong>Tài chính linh hoạt:</strong> phương án thanh toán theo tháng/năm giúp giảm rủi ro rời bỏ.</li>
+            <li><strong>Đào tạo &amp; enablement:</strong> tài liệu bán hàng và đào tạo cho đội ngũ Đại lý Sao Việt.</li>
+          </ul>
+          <p class="muted small">Liên hệ đầu mối Tech Data phụ trách Microsoft để được hỗ trợ cho các hợp đồng rủi ro cao.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <p>Demo được tạo bằng GitHub Copilot cho chương trình AI RACE Refuel</p>
+    <p class="small">Dữ liệu hư cấu phục vụ trình diễn</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
